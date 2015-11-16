@@ -21,7 +21,6 @@ def replace_template_variables(command):
     def replace(input_string):
         config_vars.append(input_string.group(1))
         return '{{{}}}'.format(input_string.group(1))
-        # return 'task_config[\'{0}\']'.format(input_string.group(1))
 
     formatted_string = re.sub(r'\{{2}\s*(\w+)\s*\}{2}', replace, command)
     formatted_args = ', '.join(
@@ -36,6 +35,14 @@ def replace_template_variables(command):
     return result_string, config_vars
 
 
+def task_name(shell_command):
+    match = re.search(r'\/(.*)\.', shell_command)
+    task_name = match.group(1) if match else ''
+    task_name = task_name.replace('-', '_')
+
+    return task_name
+
+
 def main():
     parser = OptionParser()
     parser.add_option("-d", "--directory", dest="directory",
@@ -47,31 +54,33 @@ def main():
     (options, args) = parser.parse_args()
 
     env = Environment(loader=FileSystemLoader('.'))
+
     for cron in [CronTab(tabfile=os.path.abspath(arg)) for arg in args]:
         for job in cron:
             test_template = env.get_template('workflow-test-template.jj2')
-            template = env.get_template('workflow-template.jj2')
-            match = re.search(r'/(.*)\.', job.command)
+            workflow_template = env.get_template('workflow-template.jj2')
+
+            task = task_name(job.command)
+
             command = remove_user_from_command(job.command)
-            task_name = match.group(1) if match else ''
-            task_name = task_name.replace('-', '_')
             command, vars = replace_template_variables(command)
+
             values = {
                 'hour': job.hour,
                 'minute': job.minute,
-                'task_config_filename': task_name + '.yaml',
-                'dag_id': task_name,
-                'task_id': task_name,
+                'task_config_filename': task + '.yaml',
+                'dag_id': task,
+                'task_id': task,
                 'command': command
             }
 
-            with open(task_name + '.py', 'w') as wfile:
-                wfile.write(template.render(**values))
-            with open('test_' + task_name + '.py', 'w') as tfile:
-                tfile.write(test_template.render({
-                            'workflow_module_name': task_name
-                            }))
-            with open(task_name + '.yaml', 'w') as cfile:
+            with open(task + '.py', 'w') as wfile:
+                wfile.write(workflow_template.render(**values))
+
+            with open('test_' + task + '.py', 'w') as tfile:
+                tfile.write(test_template.render(workflow_module_name=task))
+
+            with open(task + '.yaml', 'w') as cfile:
                 dump({var: '' for var in vars}, cfile)
 
     return 0

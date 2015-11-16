@@ -29,3 +29,14 @@ def test_replace_template_variables():
 
     assert (generate.replace_template_variables(test_cases[0][0])[1]
             == ['acumen_cron_scripts_dir', 'sh'])
+
+
+def test_task_name():
+    test_cases = [
+        ('{{ acumen_pipeline_runtime_user }}\
+ {{ acumen_cron_scripts_dir }}/cron-stacktach-load.sh',
+         'cron_stacktach_load')
+    ]
+
+    for input, output in test_cases:
+        assert generate.task_name(input) == output
