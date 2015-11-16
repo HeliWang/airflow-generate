@@ -27,9 +27,13 @@ def substitute_template_variables_with_config(command):
     formatted_args = ', '.join(
         ['{0}=task_config[\'{0}\']'.format(var) for var in config_vars])
 
-    return '\'{0}\'.format({1})'.format(
-        formatted_string, formatted_args
-    ), config_vars
+    if config_vars:
+        result_string = '\'{0}\'.format({1})'.format(
+            formatted_string, formatted_args)
+    else:
+        result_string = '\'{0}\''.format(formatted_string)
+
+    return result_string, config_vars
 
 
 def main():
