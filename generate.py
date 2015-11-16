@@ -43,10 +43,15 @@ def task_name(shell_command):
     return task_name
 
 
+def render_to_file(filename, template, **kwargs):
+    with open(filename, 'w') as ofile:
+        ofile.write(template.render(kwargs))
+
+
 def main():
     parser = OptionParser()
     parser.add_option("-d", "--directory", dest="directory",
-                      help="directory for output files")
+                      help="directory for output files", default='')
     parser.add_option("-f", "--force",
                       action="store_true", dest="force", default=False,
                       help="force file overwrite")
@@ -74,14 +79,25 @@ def main():
                 'command': command
             }
 
-            with open(task + '.py', 'w') as wfile:
-                wfile.write(workflow_template.render(**values))
+            if options.directory and not os.path.exists(options.directory):
+                os.mkdir(options.directory)
 
-            with open('test_' + task + '.py', 'w') as tfile:
-                tfile.write(test_template.render(workflow_module_name=task))
+            workflow_filename = os.path.join(
+                options.directory, task + '.py')
+            if not os.path.exists(workflow_filename) or options.force:
+                render_to_file(workflow_filename, workflow_template, **values)
 
-            with open(task + '.yaml', 'w') as cfile:
-                dump({var: '' for var in vars}, cfile)
+            test_filename = os.path.join(
+                options.directory, 'test_' + task + '.py')
+            if not os.path.exists(test_filename) or options.force:
+                render_to_file(test_filename, test_template,
+                               workflow_module_name=task)
+
+            config_filename = os.path.join(
+                options.directory, task + '.yaml')
+            if not os.path.exists(config_filename) or options.force:
+                with open(config_filename, 'w') as cfile:
+                    dump({var: '' for var in vars}, cfile)
 
     return 0
 
