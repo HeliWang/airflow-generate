@@ -1,0 +1,45 @@
+from airflow import DAG
+from airflow.operators import BashOperator
+from datetime import datetime, timedelta, time
+
+from common.configs import get_config
+from common.log import get_log_path
+from common.tasks import alert_task
+
+common_config = get_config('common.yaml')
+task_config = get_config('{{ task_config_filename }}')
+
+LOG_PATH = get_log_path(
+    common_config['LOGS'],
+    task_config['LOG_PREFIX'])
+
+today = datetime.today()
+hour = {{ hour }}
+minute = {{ minute }}
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime.combine(
+        today, time(hour, minute)) - timedelta(days=1),
+    'retries': 0,
+    'retry_delay': timedelta(minutes=5),
+}
+
+dag = DAG('{{ dag_id }}',
+          default_args=default_args,
+          schedule_interval=timedelta(days=1))
+
+
+command = {{ command }}
+
+t1 = BashOperator(task_id='{{ task_id }}',
+                  bash_command=command, dag=dag)
+
+
+t2 = alert_task(log=LOG_PATH,
+                prefix=task_config['LOG_PREFIX'],
+                dag=dag)
+
+t2.set_upstream(t1)
+

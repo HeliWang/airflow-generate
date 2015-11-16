@@ -1,0 +1,3 @@
+def test_correct_workflow_import():
+    import dags.{{ workflow_module_name }} as workflow
+    assert workflow is not None
