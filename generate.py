@@ -10,12 +10,12 @@ from jinja2 import FileSystemLoader, Environment
 from yaml import dump
 
 
-def remove_user_from_templated(command_with_user):
+def remove_user_from_command(command_with_user):
     match = re.search(r'\{{0,2}\s?\w+\s?\}{0,2}\s(.*)', command_with_user)
     return match.group(1) if match else command_with_user
 
 
-def substitute_template_variables_with_config(command):
+def replace_template_variables(command):
     config_vars = []
 
     def replace(input_string):
@@ -52,10 +52,10 @@ def main():
             test_template = env.get_template('workflow-test-template.jj2')
             template = env.get_template('workflow-template.jj2')
             match = re.search(r'/(.*)\.', job.command)
-            command = remove_user_from_templated(job.command)
+            command = remove_user_from_command(job.command)
             task_name = match.group(1) if match else ''
             task_name = task_name.replace('-', '_')
-            command, vars = substitute_template_variables_with_config(command)
+            command, vars = replace_template_variables(command)
             values = {
                 'hour': job.hour,
                 'minute': job.minute,
