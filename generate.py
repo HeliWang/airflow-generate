@@ -48,6 +48,11 @@ def render_to_file(filename, template, **kwargs):
         ofile.write(template.render(kwargs))
 
 
+def append_common_vars(vars):
+    vars.append('LOG_PREFIX')
+    return vars
+
+
 def main():
     parser = OptionParser()
     parser.add_option("-d", "--directory", dest="directory",
@@ -69,6 +74,7 @@ def main():
 
             command = remove_user_from_command(job.command)
             command, vars = replace_template_variables(command)
+            vars = append_common_vars(vars)
 
             values = {
                 'hour': job.hour,
