@@ -15,8 +15,9 @@ def remove_user_from_command(command_with_user):
     return match.group(1) if match else command_with_user
 
 
-def wrap_command(command):
-    return 'sh {0};'.format(command)
+def wrap_command(command, args):
+    args.append('user')
+    return 'sudo su -c \"{0}\" {{user}}'.format(command), args
 
 
 def replace_template_variables(command):
@@ -27,7 +28,7 @@ def replace_template_variables(command):
         return '{{{}}}'.format(input_string.group(1))
 
     formatted_string = re.sub(r'\{{2}\s*(\w+)\s*\}{2}', replace, command)
-    formatted_string = wrap_command(formatted_string)
+    formatted_string, config_vars = wrap_command(formatted_string, config_vars)
     formatted_args = ', '.join(
         ['{0}=task_config[\'{0}\']'.format(var) for var in config_vars])
 

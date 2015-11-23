@@ -15,20 +15,16 @@ def test_remove_user_from_command():
 
 
 def test_replace_template_variables():
-    test_cases = [
-        ('{{ acumen_cron_scripts_dir }}/cron-stacktach-load.{{ sh }}',
-         '\'{acumen_cron_scripts_dir}/cron-stacktach-load.{sh}\'.format\
-(acumen_cron_scripts_dir=task_config[\'acumen_cron_scripts_dir\'],\
- sh=task_config[\'sh\'])'),
-        ('cron-stacktach-load.sh', '\'cron-stacktach-load.sh\'')
-    ]
+    input, output = ('{{ acumen_cron_scripts_dir }}/cron-stacktach-load.{{ sh }}',
+                     '\'sudo su -c \"{acumen_cron_scripts_dir}/cron-stacktach-load.{sh}\" \
+{user}\'.format(acumen_cron_scripts_dir=task_config[\'acumen_cron_scripts_dir\'],\
+ sh=task_config[\'sh\'], user=task_config[\'user\'])')
 
-    for input, result in test_cases:
-        assert (generate.replace_template_variables(input)[0]
-                == result)
+    assert (generate.replace_template_variables(input)[0]
+            == output)
 
-    assert (generate.replace_template_variables(test_cases[0][0])[1]
-            == ['acumen_cron_scripts_dir', 'sh'])
+    assert (generate.replace_template_variables(input)[1]
+            == ['acumen_cron_scripts_dir', 'sh', 'user'])
 
 
 def test_task_name():
@@ -40,3 +36,9 @@ def test_task_name():
 
     for input, output in test_cases:
         assert generate.task_name(input) == output
+
+
+def test_wrap_command():
+    assert generate.wrap_command('/usr/bin/run', []) == (
+        'sudo su -c \"/usr/bin/run\" {user}', ['user']
+    )
