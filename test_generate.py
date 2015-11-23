@@ -1,4 +1,5 @@
 import generate
+from crontab import CronTab
 
 
 def test_remove_user_from_command():
@@ -42,3 +43,19 @@ def test_wrap_command():
     assert generate.wrap_command('/usr/bin/run', []) == (
         'sudo su -c \"/usr/bin/run\" {user}', ['user']
     )
+
+
+def test_job_start_time():
+    cron = CronTab(tab="*/1 * * * * root {{ acumen_cron_scripts_dir }}/cron-jt-status.sh")
+    assert generate.job_start_time(cron[0]) == ('0', '0')
+
+    cron = CronTab(tab="18 21 * * * root {{ acumen_cron_scripts_dir }}/cron-jt-status.sh")
+    assert generate.job_start_time(cron[0]) == ('21', '18')
+
+
+def test_job_delta_time():
+    cron = CronTab(tab="*/1 * * * * root {{ acumen_cron_scripts_dir }}/cron-jt-status.sh")
+    assert generate.job_delta_time(cron[0]) == ('0', '0', '5')
+
+    cron = CronTab(tab="18 21 * * * root {{ acumen_cron_scripts_dir }}/cron-jt-status.sh")
+    assert generate.job_delta_time(cron[0]) == ('1', '0', '0')

@@ -59,6 +59,16 @@ def append_common_vars(vars):
     return vars
 
 
+def job_start_time(job):
+    res = ('0', '0') if '*' in job.minute.render() else (
+        job.hour.render(), job.minute.render())
+    return res
+
+
+def job_delta_time(job):
+    return ('0', '0', '5') if '*' in job.minute.render() else ('1', '0', '0')
+
+
 def main():
     parser = OptionParser()
     parser.add_option("-d", "--directory", dest="directory",
@@ -82,9 +92,15 @@ def main():
             command, vars = replace_template_variables(command)
             vars = append_common_vars(vars)
 
+            hour, minute = job_start_time(job)
+            d_delta, h_delta, m_delta = job_delta_time(job)
+
             values = {
-                'hour': job.hour,
-                'minute': job.minute,
+                'hour': hour,
+                'minute': minute,
+                'd_delta': d_delta,
+                'h_delta': h_delta,
+                'm_delta': m_delta,
                 'task_config_filename': task + '.yaml',
                 'dag_id': task,
                 'task_id': task,

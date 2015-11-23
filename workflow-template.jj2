@@ -16,19 +16,26 @@ LOG_PATH = get_log_path(
 today = datetime.today()
 hour = {{ hour }}
 minute = {{ minute }}
+d_delta = {{ d_delta }}
+h_delta = {{ h_delta }}
+m_delta = {{ m_delta }}
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
     'start_date': datetime.combine(
-        today, time(hour, minute)) - timedelta(days=1),
+        today, time(hour, minute)) - timedelta(days=d_delta,
+                                               hours=h_delta,
+                                               minutes=m_delta),
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
 }
 
 dag = DAG('{{ dag_id }}',
           default_args=default_args,
-          schedule_interval=timedelta(days=1))
+          schedule_interval=timedelta(days=d_delta,
+                                      hours=h_delta,
+                                      minutes=m_delta)
 
 
 command = {{ command }}
