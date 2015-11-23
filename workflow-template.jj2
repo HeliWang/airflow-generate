@@ -35,7 +35,7 @@ dag = DAG('{{ dag_id }}',
           default_args=default_args,
           schedule_interval=timedelta(days=d_delta,
                                       hours=h_delta,
-                                      minutes=m_delta)
+                                      minutes=m_delta))
 
 
 command = {{ command }}
