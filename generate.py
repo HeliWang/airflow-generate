@@ -17,7 +17,7 @@ def remove_user_from_command(command_with_user):
 
 def wrap_command(command, args):
     args.append('user')
-    return 'sudo su -c \"{0}\" {{user}}'.format(command), args
+    return 'sudo env PATH=$PATH su -c \"{0}\" {{user}}'.format(command), args
 
 
 def replace_template_variables(command):

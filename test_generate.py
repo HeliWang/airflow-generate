@@ -17,7 +17,7 @@ def test_remove_user_from_command():
 
 def test_replace_template_variables():
     input, output = ('{{ acumen_cron_scripts_dir }}/cron-stacktach-load.{{ sh }}',
-                     '\'sudo su -c \"{acumen_cron_scripts_dir}/cron-stacktach-load.{sh}\" \
+                     '\'sudo env PATH=$PATH su -c \"{acumen_cron_scripts_dir}/cron-stacktach-load.{sh}\" \
 {user}\'.format(acumen_cron_scripts_dir=task_config[\'acumen_cron_scripts_dir\'],\
  sh=task_config[\'sh\'], user=task_config[\'user\'])')
 
@@ -41,7 +41,7 @@ def test_task_name():
 
 def test_wrap_command():
     assert generate.wrap_command('/usr/bin/run', []) == (
-        'sudo su -c \"/usr/bin/run\" {user}', ['user']
+        'sudo env PATH=$PATH su -c \"/usr/bin/run\" {user}', ['user']
     )
 
 
