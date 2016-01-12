@@ -1,13 +1,22 @@
 from airflow import DAG
 from airflow.operators import BashOperator
+from airflow.models import Variable
 from datetime import datetime, timedelta, time
 
 from common.configs import get_config
 from common.log import get_log_path
 from common.tasks import alert_task
 
-common_config = get_config('common.yaml')
-task_config = get_config('{{ task_config_filename }}')
+try:
+    default_config = Variable.get("DEFAULT_CONFIG")
+except:
+    default_config = None
+
+if default_config:
+    common_config = get_config('common.yaml')
+    task_config = get_config('{{ task_config_filename }}')
+else:
+    raise Exception("Can't use default config, no another configs")
 
 LOG_PATH = get_log_path(
     common_config['LOGS'],
